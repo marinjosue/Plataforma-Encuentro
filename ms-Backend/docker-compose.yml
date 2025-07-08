@@ -1,0 +1,109 @@
+version: '3.9'
+services:
+  ms-reservas:
+    build: ./ms-reservas
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - DB_HOST=cockroach-1
+      - DB_PORT=26257
+      - DB_USER=root
+      - DB_PASSWORD=
+      - DB_NAME=reservas
+      - DB_SSL=false
+      - RABBITMQ_URL=amqp://admin:admin@rabbitmq
+      - RABBITMQ_QUEUE=reserva_confirmada
+    depends_on:
+      - cockroach-1
+      - rabbitmq
+  
+  ms-notificaciones:
+    build: ./ms-notificaciones
+    ports:
+      - "3002:3002"
+    environment:
+      - PORT=3002
+      - RABBITMQ_URL=amqp://admin:admin@rabbitmq
+      - RABBITMQ_QUEUE=qr_generado
+      - EMAIL_FROM=no-reply@encuentro.com
+    depends_on:
+      - rabbitmq
+  
+  ms-entradas:
+      build: ./ms-entradas
+      ports:
+        - "3003:3003"
+      environment:
+        - PORT=3003
+        - DB_HOST=cockroach-1
+        - DB_PORT=26257
+        - DB_USER=root
+        - DB_PASSWORD=
+        - DB_NAME=entradas
+        - DB_SSL=false
+        - RABBITMQ_URL=amqp://admin:admin@rabbitmq
+        - RABBITMQ_IN_QUEUE=reserva_confirmada
+        - RABBITMQ_OUT_QUEUE=qr_generado
+      depends_on:
+        - rabbitmq
+        - cockroach-1
+  
+  ms-conciertos:
+    build: ./ms-conciertos
+    ports:
+      - "3004:3004"
+    environment:
+      - PORT=3004
+      - DB_HOST=cockroach-1
+      - DB_PORT=26257
+      - DB_USER=root
+      - DB_PASSWORD=
+      - DB_NAME=conciertos
+      - DB_SSL=false
+    depends_on:
+      - cockroach-1
+
+
+  cockroach-1:
+    image: cockroachdb/cockroach:v23.1.11
+    command: start --insecure --join=cockroach-1,cockroach-2,cockroach-3
+    volumes:
+      - cockroach-data-1:/cockroach/cockroach-data
+    ports:
+      - "26257:26257"
+      - "8080:8080"
+
+  cockroach-2:
+    image: cockroachdb/cockroach:v23.1.11
+    command: start --insecure --join=cockroach-1,cockroach-2,cockroach-3
+    volumes:
+      - cockroach-data-2:/cockroach/cockroach-data
+
+  cockroach-3:
+    image: cockroachdb/cockroach:v23.1.11
+    command: start --insecure --join=cockroach-1,cockroach-2,cockroach-3
+    volumes:
+      - cockroach-data-3:/cockroach/cockroach-data
+
+  init-cluster:
+    image: cockroachdb/cockroach:v23.1.11
+    depends_on:
+      - cockroach-1
+      - cockroach-2
+      - cockroach-3
+    command: init --insecure --host=cockroach-1
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"  # UI en http://localhost:15672
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin
+
+volumes:
+  cockroach-data-1:
+  cockroach-data-2:
+  cockroach-data-3:
