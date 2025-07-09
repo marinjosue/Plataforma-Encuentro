@@ -4,11 +4,12 @@ const { v4: uuidv4 } = require('uuid');
 async function guardarConcierto(data) {
   const id = uuidv4();
   await db.query(`
-    INSERT INTO conciertos (id, nombre, fecha, lugar, organizador_id)
-    VALUES ($1, $2, $3, $4, $5)`,
-    [id, data.nombre, data.fecha, data.lugar, data.organizador_id]);
+    INSERT INTO conciertos (id, nombre, fecha, lugar, ciudad, categoria, organizador_id)
+    VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+    [id, data.nombre, data.fecha, data.lugar, data.ciudad, data.categoria, data.organizador_id]);
   return { ...data, id };
 }
+
 
 async function obtenerTodos({ tipo, fecha }) {
   let query = 'SELECT * FROM conciertos WHERE 1=1';
@@ -36,12 +37,13 @@ async function obtenerPorId(id) {
 async function actualizarConcierto(id, data) {
   const res = await db.query(`
     UPDATE conciertos
-    SET nombre = $1, fecha = $2, lugar = $3, organizador_id = $4
-    WHERE id = $5
+    SET nombre = $1, fecha = $2, lugar = $3, ciudad = $4, categoria = $5, organizador_id = $6
+    WHERE id = $7
     RETURNING *`,
-    [data.nombre, data.fecha, data.lugar, data.organizador_id, id]);
+    [data.nombre, data.fecha, data.lugar, data.ciudad, data.categoria, data.organizador_id, id]);
   return res.rows[0];
 }
+
 
 async function eliminarConcierto(id) {
   await db.query('DELETE FROM conciertos WHERE id = $1', [id]);

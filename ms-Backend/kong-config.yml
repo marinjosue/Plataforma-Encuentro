@@ -31,3 +31,23 @@ services:
         paths:
           - /api/conciertos
         strip_path: true
+        
+  - name: ms-zonas
+    url: http://ms-conciertos:3004/api/v1/zonas
+    routes:
+      - name: zonas-route
+        paths:
+          - /api/zonas
+        strip_path: true
+
+  - name: ms-usuarios
+    url: http://ms-usuarios:3005/api/v1/usuarios
+    routes:
+      - name: usuarios-route
+        paths:
+          - /api/usuarios
+        strip_path: true
+
+
+  
+

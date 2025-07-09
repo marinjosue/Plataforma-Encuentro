@@ -1,22 +1,49 @@
 const db = require('../config/db');
+const dbConciertos = require('../config/dbConciertos'); // <--- NUEVO
 const { v4: uuidv4 } = require('uuid');
 
-async function createReserva({ evento_id, zona_id, cantidad }) {
+async function createReserva({ evento_id, zona_id, cantidad, usuario_id }) {
     const id = uuidv4();
+
+    // Validar que exista el concierto
+    const concierto = await dbConciertos.query(`SELECT id FROM conciertos WHERE id = $1`, [evento_id]);
+    if (!concierto.rows[0]) throw new Error('Concierto no encontrado');
+
+    // Validar disponibilidad en la base de conciertos
+    const zona = await dbConciertos.query(`SELECT capacidad FROM zonas WHERE id = $1`, [zona_id]);
+    if (!zona.rows[0]) throw new Error('Zona no encontrada');
+    if (zona.rows[0].capacidad < cantidad) throw new Error('No hay suficientes cupos');
+
     const vencimiento = new Date(Date.now() + 10 * 60 * 1000); // 10 minutos
     const result = await db.query(`
-    INSERT INTO reservas (id, evento_id, zona_id, cantidad, estado, vencimiento)
-    VALUES ($1, $2, $3, $4, 'temporal', $5)
+    INSERT INTO reservas (id, evento_id, zona_id, cantidad, estado, vencimiento, usuario_id)
+    VALUES ($1, $2, $3, $4, 'temporal', $5, $6)
     RETURNING *`,
-        [id, evento_id, zona_id, cantidad, vencimiento]);
+        [id, evento_id, zona_id, cantidad, vencimiento, usuario_id]);
+
     return result.rows[0];
 }
 
-async function confirmarReserva(id) {
-    const result = await db.query(`
-    UPDATE reservas SET estado = 'confirmada'
-    WHERE id = $1 RETURNING *`, [id]);
-    return result.rows[0];
+async function confirmarReserva(id, usuario_id) {
+    // Verificar reserva
+    const reserva = await db.query(`SELECT * FROM reservas WHERE id = $1 AND usuario_id = $2`, [id, usuario_id]);
+    if (!reserva.rows[0]) throw new Error('Reserva no válida');
+
+    // Validar nuevamente disponibilidad en la base de conciertos
+    const zona = await dbConciertos.query(`SELECT capacidad FROM zonas WHERE id = $1`, [reserva.rows[0].zona_id]);
+    if (!zona.rows[0] || zona.rows[0].capacidad < reserva.rows[0].cantidad) {
+        throw new Error('Ya no hay disponibilidad');
+    }
+
+    // Confirmar y descontar en la base de conciertos
+    await dbConciertos.query(`UPDATE zonas SET capacidad = capacidad - $1 WHERE id = $2`,
+        [reserva.rows[0].cantidad, reserva.rows[0].zona_id]);
+
+    const confirmada = await db.query(`
+    UPDATE reservas SET estado = 'confirmada' WHERE id = $1 RETURNING *`,
+        [id]);
+
+    return confirmada.rows[0];
 }
 
 async function getReservaById(id) {

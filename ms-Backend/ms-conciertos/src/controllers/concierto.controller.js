@@ -1,52 +1,55 @@
-const ConciertoDTO = require('../dto/concierto.dto');
 const service = require('../services/concierto.service');
 
-exports.crear = async (req, res) => {
+async function crear(req, res) {
   try {
-    const dto = ConciertoDTO.fromRequest(req.body);
-    const concierto = await service.crear(dto);
+    const concierto = await service.crear(req.body);
     res.status(201).json(concierto);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
   }
-};
+}
 
-exports.listar = async (req, res) => {
+async function listar(req, res) {
   try {
     const conciertos = await service.listar(req.query);
     res.json(conciertos);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
-};
+}
 
-exports.obtener = async (req, res) => {
+async function obtener(req, res) {
   try {
     const concierto = await service.buscarPorId(req.params.id);
-    if (!concierto) return res.status(404).json({ error: 'Concierto no encontrado' });
+    if (!concierto) return res.status(404).json({ message: 'No encontrado' });
     res.json(concierto);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
-};
-exports.actualizar = async (req, res) => {
+}
+
+async function actualizar(req, res) {
   try {
-    const dto = ConciertoDTO.fromRequest(req.body);
-    const concierto = await service.actualizar(req.params.id, dto);
-    if (!concierto) return res.status(404).json({ error: 'Concierto no encontrado' });
-    res.json(concierto);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    const actualizado = await service.actualizar(req.params.id, req.body);
+    res.json(actualizado);
+  } catch (error) {
+    res.status(404).json({ message: error.message });
   }
-};
-exports.eliminar = async (req, res) => {
+}
+
+async function eliminar(req, res) {
   try {
-    const concierto = await service.buscarPorId(req.params.id);
-    if (!concierto) return res.status(404).json({ error: 'Concierto no encontrado' });
-    
-    await service.eliminar(req.params.id);
-    res.json({ message: 'Concierto eliminado correctamente' });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    const eliminado = await service.eliminar(req.params.id);
+    res.json(eliminado);
+  } catch (error) {
+    res.status(404).json({ message: error.message });
   }
+}
+
+module.exports = {
+  crear,
+  listar,
+  obtener,
+  actualizar,
+  eliminar
 };

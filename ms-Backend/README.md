@@ -74,13 +74,13 @@ CREATE DATABASE IF NOT EXISTS reservas;
 USE reservas;
 
 CREATE TABLE IF NOT EXISTS reservas (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  evento_id STRING NOT NULL,
-  zona_id STRING NOT NULL,
-  cantidad INT NOT NULL,
-  estado STRING DEFAULT 'temporal',
-  vencimiento TIMESTAMP,
-  created_at TIMESTAMP DEFAULT now()
+    id UUID PRIMARY KEY,
+    evento_id UUID NOT NULL,
+    zona_id UUID NOT NULL,
+    cantidad INT NOT NULL,
+    estado STRING NOT NULL,
+    vencimiento TIMESTAMP NOT NULL,
+    usuario_id UUID NOT NULL
 );
 ```
 
@@ -112,12 +112,36 @@ CREATE TABLE IF NOT EXISTS conciertos (
   nombre STRING NOT NULL,
   fecha TIMESTAMP NOT NULL,
   lugar STRING NOT NULL,
-  organizador_id STRING NOT NULL
+  organizador_id STRING NOT NULL,
+  ciudad TEXT NOT NULL,
+  categoria TEXT NOT NULL
 );
 ```
+### 🟥 Usuarios
 
+```sql
+CREATE DATABASE IF NOT EXISTS usuarios ;
+USE usuarios ;
+
+CREATE TABLE usuarios (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  nombres TEXT NOT NULL,
+  apellidos TEXT NOT NULL,
+  correo TEXT UNIQUE NOT NULL,
+  password TEXT NOT NULL,
+  rol TEXT NOT NULL
+);
 ---
-
+### ZOnas
+```sql
+CREATE TABLE IF NOT EXISTS zonas (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  concierto_id UUID NOT NULL REFERENCES conciertos(id) ON DELETE CASCADE,
+  nombre STRING NOT NULL,
+  capacidad INT NOT NULL CHECK (capacidad > 0),
+  precio DECIMAL(10,2) NOT NULL CHECK (precio >= 0)
+);
+```
 ## 🧪 Pruebas por microservicio
 
 ### ✅ Crear concierto
@@ -179,6 +203,9 @@ Content-Type: application/json
 ```
 
 ---
+para kong 
+deck gateway sync kong-config.yml --kong-addr http://localhost:8001
+
 
 ## 🔁 Flujo de eventos
 
@@ -199,6 +226,9 @@ Content-Type: application/json
 - José Sanmartín → ms-conciertos
 
 ---
+para ejecutar y ver los console log en terminar 
+docker compose logs -f ms-reservas
+
 
 ## ✅ Estado final
 

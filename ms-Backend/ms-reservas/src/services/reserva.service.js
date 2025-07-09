@@ -1,35 +1,28 @@
-const repository = require('../repository/reserva.repository');
-const { publishReservaConfirmada } = require('../config/rabbitmq');
+const repo = require('../repository/reserva.repository');
+const Reserva = require('../models/reserva.model');
 
-async function crearReserva(data) {
-    const reserva = await repository.createReserva(data);
-    return reserva;
+async function crear(data) {
+    const reserva = await repo.createReserva(data);
+    return new Reserva(reserva);
 }
 
-async function confirmarReserva({ reserva_id, metodo_pago }) {
-    const reserva = await repository.confirmarReserva(reserva_id);
-    if (reserva) {
-        publishReservaConfirmada({
-            type: 'reserva_confirmada',
-            reserva_id,
-            evento_id: reserva.evento_id,
-            cantidad: reserva.cantidad
-        });
-    }
-    return reserva;
+async function confirmar(id, usuario_id) {
+    const reserva = await repo.confirmarReserva(id, usuario_id);
+    return new Reserva(reserva);
 }
 
-async function obtenerReserva(id) {
-    return await repository.getReservaById(id);
+async function obtenerPorId(id) {
+    const reserva = await repo.getReservaById(id);
+    return new Reserva(reserva);
 }
 
-async function cancelarReserva(id) {
-    await repository.deleteReserva(id);
+async function eliminar(id) {
+    await repo.deleteReserva(id);
 }
 
 module.exports = {
-    crearReserva,
-    confirmarReserva,
-    obtenerReserva,
-    cancelarReserva
+    crear,
+    confirmar,
+    obtenerPorId,
+    eliminar
 };

@@ -1,11 +1,14 @@
+const { v4: uuidv4 } = require('uuid');
+
 class ConciertoDTO {
-  static fromRequest(body) {
-    return {
-      nombre: body.nombre,
-      fecha: new Date(body.fecha),
-      lugar: body.lugar,
-      organizador_id: body.organizador_id
-    };
+  constructor({ nombre, categoria, ciudad, fecha, lugar, organizador_id }) {
+    this.id = uuidv4();
+    this.nombre = nombre;
+    this.categoria = categoria;
+    this.ciudad = ciudad;
+    this.fecha = fecha;
+    this.lugar = lugar;
+    this.organizador_id = organizador_id;
   }
 }
 
