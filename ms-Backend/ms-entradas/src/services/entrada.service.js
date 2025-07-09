@@ -37,9 +37,14 @@ async function obtener(id) {
   return await repository.obtenerPorId(id);
 }
 
+async function obtenerPorUsuario(usuario_id) {
+  return await repository.obtenerPorUsuario(usuario_id);
+}
+
 module.exports = {
   crearEntrada,
   crearDesdeReserva,
   listar,
-  obtener
+  obtener,
+  obtenerPorUsuario // <-- agrega esto
 };

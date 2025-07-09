@@ -29,3 +29,12 @@ exports.obtener = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+exports.obtenerPorUsuario = async (req, res) => {
+  try {
+    const entradas = await service.obtenerPorUsuario(req.params.usuario_id);
+    res.json(entradas);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

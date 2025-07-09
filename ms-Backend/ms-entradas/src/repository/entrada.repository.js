@@ -20,8 +20,15 @@ async function obtenerPorId(id) {
   return res.rows[0];
 }
 
+
+async function obtenerPorUsuario(usuario_id) {
+  const res = await db.query('SELECT * FROM entradas WHERE usuario_id = $1', [usuario_id]);
+  return res.rows;
+}
+
 module.exports = {
   guardarEntrada,
   obtenerTodas,
-  obtenerPorId
+  obtenerPorId,
+  obtenerPorUsuario // <-- agrega esto
 };
