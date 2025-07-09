@@ -1,5 +1,6 @@
 const db = require('../config/db');
-const dbConciertos = require('../config/dbConciertos'); // <--- NUEVO
+const dbConciertos = require('../config/dbConciertos');
+const dbUsuarios = require('../config/dbUsuarios'); 
 const { v4: uuidv4 } = require('uuid');
 
 async function createReserva({ evento_id, zona_id, cantidad, usuario_id }) {
@@ -29,6 +30,11 @@ async function confirmarReserva(id, usuario_id) {
     const reserva = await db.query(`SELECT * FROM reservas WHERE id = $1 AND usuario_id = $2`, [id, usuario_id]);
     if (!reserva.rows[0]) throw new Error('Reserva no válida');
 
+    // Obtener correo del usuario desde la base de usuarios
+    const usuario = await dbUsuarios.query(`SELECT correo FROM usuarios WHERE id = $1`, [usuario_id]);
+    if (!usuario.rows[0]) throw new Error('Usuario no encontrado');
+    const correo = usuario.rows[0].correo;
+
     // Validar nuevamente disponibilidad en la base de conciertos
     const zona = await dbConciertos.query(`SELECT capacidad FROM zonas WHERE id = $1`, [reserva.rows[0].zona_id]);
     if (!zona.rows[0] || zona.rows[0].capacidad < reserva.rows[0].cantidad) {
@@ -43,7 +49,8 @@ async function confirmarReserva(id, usuario_id) {
     UPDATE reservas SET estado = 'confirmada' WHERE id = $1 RETURNING *`,
         [id]);
 
-    return confirmada.rows[0];
+    // Retornar también el correo
+    return { ...confirmada.rows[0], correo };
 }
 
 async function getReservaById(id) {

@@ -1,5 +1,5 @@
 const amqp = require('amqplib');
-const entradaService = require('../services/entrada.service');
+
 
 let channel;
 
@@ -20,12 +20,12 @@ function publishQREvent(data) {
   );
 }
 
-async function listenToReservas() {
+async function listenToReservas(crearDesdeReserva) {
   channel.consume(process.env.RABBITMQ_IN_QUEUE, async (msg) => {
     const data = JSON.parse(msg.content.toString());
     console.log('[Evento recibido: reserva_confirmada]', data);
 
-    await entradaService.crearDesdeReserva(data); // genera entrada y QR
+    await crearDesdeReserva(data); // genera entrada y QR
 
     channel.ack(msg);
   });

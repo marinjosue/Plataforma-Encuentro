@@ -12,13 +12,14 @@ async function crearEntrada(data) {
 
 async function crearDesdeReserva(evento) {
   const entrada = await crearEntrada({
+    usuario_id: evento.usuario_id,
     evento_id: evento.evento_id,
     zona_id: evento.zona_id || 'general',
     cantidad: evento.cantidad
   });
 
   publishQREvent({
-    correo: 'usuario@ejemplo.com', // Simulado
+    correo: evento.correo, // Ahora real
     evento: evento.evento_id,
     entrada_id: entrada.id,
     qr: entrada.qr_code
@@ -26,6 +27,7 @@ async function crearDesdeReserva(evento) {
 
   return entrada;
 }
+
 
 async function listar() {
   return await repository.obtenerTodas();
