@@ -64,7 +64,7 @@ Esto iniciará:
 ### Acceder al shell SQL
 
 ```bash
-docker exec -it ms-backend-cockroach-1 ./cockroach sql --insecure
+docker exec -it ms-backend-cockroach-1-1 ./cockroach sql --insecure
 ```
 
 ### 🟩 Reservas
