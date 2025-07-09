@@ -33,8 +33,24 @@ async function obtenerPorId(id) {
   return res.rows[0];
 }
 
+async function actualizarConcierto(id, data) {
+  const res = await db.query(`
+    UPDATE conciertos
+    SET nombre = $1, fecha = $2, lugar = $3, organizador_id = $4
+    WHERE id = $5
+    RETURNING *`,
+    [data.nombre, data.fecha, data.lugar, data.organizador_id, id]);
+  return res.rows[0];
+}
+
+async function eliminarConcierto(id) {
+  await db.query('DELETE FROM conciertos WHERE id = $1', [id]);
+}
+
 module.exports = {
   guardarConcierto,
   obtenerTodos,
-  obtenerPorId
+  obtenerPorId,
+  actualizarConcierto,
+  eliminarConcierto
 };

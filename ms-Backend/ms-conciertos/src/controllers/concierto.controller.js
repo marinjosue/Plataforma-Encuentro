@@ -29,3 +29,24 @@ exports.obtener = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+exports.actualizar = async (req, res) => {
+  try {
+    const dto = ConciertoDTO.fromRequest(req.body);
+    const concierto = await service.actualizar(req.params.id, dto);
+    if (!concierto) return res.status(404).json({ error: 'Concierto no encontrado' });
+    res.json(concierto);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+exports.eliminar = async (req, res) => {
+  try {
+    const concierto = await service.buscarPorId(req.params.id);
+    if (!concierto) return res.status(404).json({ error: 'Concierto no encontrado' });
+    
+    await service.eliminar(req.params.id);
+    res.json({ message: 'Concierto eliminado correctamente' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
