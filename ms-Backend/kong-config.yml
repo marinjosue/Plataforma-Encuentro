@@ -48,6 +48,20 @@ services:
           - /api/usuarios
         strip_path: true
 
-
+  - name: ms-asientos
+    url: http://ms-reservas:3001/api/v1
+    routes:
+      - name: asientos-estado-route
+        paths:
+          - /api/zona
+        strip_path: false
+        methods:
+          - GET
+      - name: asientos-bloquear-route
+        paths:
+          - /api/asientos
+        strip_path: false
+        methods:
+          - POST
   
 
